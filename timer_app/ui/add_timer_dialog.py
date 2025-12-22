@@ -7,11 +7,12 @@ from timer_app.utils import validate_timer_input
 class AddTimerDialog(Gtk.Dialog):
     """Dialog for creating a new timer."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, title_history=None):
         """Initialize the add timer dialog.
 
         Args:
             parent: Parent window (can be None)
+            title_history: List of previous timer titles for autocomplete
         """
         super().__init__(
             title="Add New Timer",
@@ -34,6 +35,11 @@ class AddTimerDialog(Gtk.Dialog):
         self.title_entry = Gtk.Entry()
         self.title_entry.set_placeholder_text("Enter timer name")
         self.title_entry.set_max_length(50)
+
+        # Set up autocomplete
+        if title_history:
+            self._setup_autocomplete(title_history)
+
         box.pack_start(self.title_entry, False, False, 0)
 
         duration_label = Gtk.Label(label="Duration:")
@@ -83,6 +89,28 @@ class AddTimerDialog(Gtk.Dialog):
         self.connect("response", self.on_response)
 
         self.show_all()
+
+    def _setup_autocomplete(self, title_history):
+        """Set up autocomplete for the title entry.
+
+        Args:
+            title_history: List of previous timer titles
+        """
+        # Create a list store for the autocomplete
+        liststore = Gtk.ListStore(str)
+        for title in title_history:
+            liststore.append([title])
+
+        # Create completion
+        completion = Gtk.EntryCompletion()
+        completion.set_model(liststore)
+        completion.set_text_column(0)
+        completion.set_inline_completion(True)
+        completion.set_popup_completion(True)
+        completion.set_minimum_key_length(1)
+
+        # Attach to entry
+        self.title_entry.set_completion(completion)
 
     def on_response(self, dialog, response_id):
         """Handle dialog response.

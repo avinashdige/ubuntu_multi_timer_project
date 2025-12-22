@@ -89,18 +89,35 @@ class ViewTimersDialog(Gtk.Dialog):
         hbox.set_margin_start(10)
         hbox.set_margin_end(10)
 
-        title_label = Gtk.Label(label=timer.title)
+        # Check if this timer is pinned
+        is_pinned = (timer.id == self.timer_manager.get_pinned_timer_id())
+
+        # Title with pin indicator
+        title_text = timer.title
+        if is_pinned:
+            title_text = "📌 " + title_text
+
+        title_label = Gtk.Label(label=title_text)
         title_label.set_halign(Gtk.Align.START)
-        title_label.set_ellipsize(3)
+        title_label.set_ellipsize(3)  # PANGO_ELLIPSIZE_END
         title_label.set_max_width_chars(30)
         hbox.pack_start(title_label, True, True, 0)
 
+        # Countdown display
         time_str = format_time(timer.remaining_seconds)
         time_label = Gtk.Label()
         time_label.set_markup(f'<span font_family="monospace" size="large">{time_str}</span>')
         time_label.set_halign(Gtk.Align.END)
         hbox.pack_start(time_label, False, False, 0)
 
+        # Pin/Unpin button
+        pin_btn = Gtk.Button(label="Unpin" if is_pinned else "Pin")
+        if is_pinned:
+            pin_btn.get_style_context().add_class("suggested-action")
+        pin_btn.connect("clicked", self.on_pin_clicked, timer.id)
+        hbox.pack_start(pin_btn, False, False, 0)
+
+        # Delete button
         delete_btn = Gtk.Button(label="Delete")
         delete_btn.get_style_context().add_class("destructive-action")
         delete_btn.connect("clicked", self.on_delete_clicked, timer.id)
@@ -117,6 +134,25 @@ class ViewTimersDialog(Gtk.Dialog):
             timer_id: ID of timer to delete
         """
         self.timer_manager.delete_timer(timer_id)
+        self.update_display()
+
+    def on_pin_clicked(self, button, timer_id):
+        """Handle pin/unpin button click.
+
+        Args:
+            button: The button that was clicked
+            timer_id: ID of timer to pin/unpin
+        """
+        current_pinned_id = self.timer_manager.get_pinned_timer_id()
+
+        if timer_id == current_pinned_id:
+            # Unpin this timer (will auto-pin earliest)
+            self.timer_manager.unpin_timer()
+        else:
+            # Pin this timer
+            self.timer_manager.set_pinned_timer(timer_id)
+
+        # Update display to reflect pin change
         self.update_display()
 
     def on_response(self, dialog, response_id):

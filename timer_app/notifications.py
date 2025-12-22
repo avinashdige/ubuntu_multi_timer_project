@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 
 
 class NotificationHandler:
@@ -10,6 +11,7 @@ class NotificationHandler:
         self.notify_available = False
         self.sound_available = False
         self.sound_path = None
+        self.sound_method = None
 
         self._init_notifications()
         self._init_sound()
@@ -27,19 +29,67 @@ class NotificationHandler:
 
     def _init_sound(self):
         """Initialize sound playback."""
+        # Try multiple sound methods in order of preference
+
+        # 1. Try custom sound file with playsound
         try:
             from playsound import playsound
             self.playsound = playsound
-            self.sound_available = True
-
             sound_file = self._find_sound_file()
             if sound_file and os.path.exists(sound_file):
                 self.sound_path = sound_file
-            else:
-                print("Warning: Alert sound file not found, will use system beep")
+                self.sound_method = 'playsound'
+                self.sound_available = True
+                print("Using custom alert sound")
+                return
         except Exception as e:
-            print(f"Warning: Could not initialize sound playback: {e}")
-            self.sound_available = False
+            print(f"Note: playsound not available: {e}")
+
+        # 2. Try canberra-gtk-play (GNOME notification sounds)
+        if self._check_command_exists('canberra-gtk-play'):
+            self.sound_method = 'canberra'
+            self.sound_available = True
+            print("Using system notification sound (canberra)")
+            return
+
+        # 3. Try paplay with system sounds
+        if self._check_command_exists('paplay'):
+            # Check for common system alert sounds
+            for sound_path in [
+                '/usr/share/sounds/freedesktop/stereo/complete.oga',
+                '/usr/share/sounds/freedesktop/stereo/bell.oga',
+                '/usr/share/sounds/ubuntu/stereo/message.ogg',
+                '/usr/share/sounds/ubuntu/stereo/bell.ogg'
+            ]:
+                if os.path.exists(sound_path):
+                    self.sound_path = sound_path
+                    self.sound_method = 'paplay'
+                    self.sound_available = True
+                    print(f"Using system sound: {sound_path}")
+                    return
+
+        # 4. Fallback to system beep
+        print("No sound system available, will use system beep")
+        self.sound_method = 'beep'
+        self.sound_available = True
+
+    def _check_command_exists(self, command):
+        """Check if a command exists in the system.
+
+        Args:
+            command: Command name to check
+
+        Returns:
+            True if command exists, False otherwise
+        """
+        try:
+            subprocess.run(['which', command],
+                         capture_output=True,
+                         check=True,
+                         timeout=1)
+            return True
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+            return False
 
     def _find_sound_file(self):
         """Find the alert sound file.
@@ -96,13 +146,32 @@ class NotificationHandler:
 
     def _play_sound(self):
         """Play alert sound."""
-        if self.sound_available and self.sound_path and os.path.exists(self.sound_path):
-            try:
+        if not self.sound_available:
+            return
+
+        try:
+            if self.sound_method == 'playsound':
+                # Custom sound file with playsound
                 self.playsound(self.sound_path, block=False)
-            except Exception as e:
-                print(f"Error playing sound: {e}")
+            elif self.sound_method == 'canberra':
+                # GNOME notification sound
+                subprocess.Popen(
+                    ['canberra-gtk-play', '-i', 'complete', '-d', 'Timer Complete'],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            elif self.sound_method == 'paplay':
+                # System sound file with paplay
+                subprocess.Popen(
+                    ['paplay', self.sound_path],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            elif self.sound_method == 'beep':
+                # Fallback to system beep
                 self._system_beep()
-        else:
+        except Exception as e:
+            print(f"Error playing sound: {e}")
             self._system_beep()
 
     def _system_beep(self):

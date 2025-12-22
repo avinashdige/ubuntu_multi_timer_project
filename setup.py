@@ -5,7 +5,7 @@ with open("timer-app-requirements.md", "r", encoding="utf-8") as f:
 
 setup(
     name="multi-timer-app",
-    version="1.0.0",
+    version="1.1.0",
     author="Your Name",
     description="A system tray application for Ubuntu that manages multiple named timers",
     long_description=long_description,
@@ -26,6 +26,7 @@ setup(
     entry_points={
         "console_scripts": [
             "multi-timer=timer_app.main:main",
+            "timer-cli=timer_app.cli:main",
         ],
     },
     python_requires=">=3.7",

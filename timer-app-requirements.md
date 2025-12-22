@@ -109,3 +109,13 @@ A system tray application for Ubuntu that allows users to manage multiple named 
 - Timer history or statistics
 - Recurring/repeating timers
 - Timer templates or presets
+
+Version 1.1 requirements:
+1. Auto-complete timer titles
+2. CLI support: Through CLI as well, we should be able to add timers.
+3. Sounds not being played for the notifications at the moment.
+4. There should be some way to define standard timers (titles and their time) that we usually always need to start timers for. These should always be available and we should just need to click start on it. May be once we click the system icon, the "Add Timer" option should have an arrow that displays all these standard timer options that we can start easily.
+5. Also, provide standard timer options like 1 minute timer button, 2 minute timer button, 3,4,5,7,10,12 minute timer buttons.
+
+Version 1.2 requirements:
+1. Can we also provide a way with which I would be able simply pin one of the timers running down? By default, it would be the earliest timer that would finish. But we can always override this pin with other timers and pin other timers instead. At once, one timer can be pinned. The pinned timer and its title would be visible running down in the Ubuntu top bar (system tray) similar to how date and time are visible directly and we do not need to click anything to view them. As soon as, the timer finishes, the next earliest available timer and its title would be shown there instead. If no timer is available, then nothing would be displayed there.
