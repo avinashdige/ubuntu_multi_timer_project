@@ -119,3 +119,6 @@ Version 1.1 requirements:
 
 Version 1.2 requirements:
 1. Can we also provide a way with which I would be able simply pin one of the timers running down? By default, it would be the earliest timer that would finish. But we can always override this pin with other timers and pin other timers instead. At once, one timer can be pinned. The pinned timer and its title would be visible running down in the Ubuntu top bar (system tray) similar to how date and time are visible directly and we do not need to click anything to view them. As soon as, the timer finishes, the next earliest available timer and its title would be shown there instead. If no timer is available, then nothing would be displayed there.
+
+Version 1.3 requirements:
+This app should be available as a Ubuntu desktop app too. Also, it should get launched automatically when the system boots up.

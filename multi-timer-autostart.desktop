@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Multi Timer
+Comment=Manage multiple named timers with desktop notifications
+Icon=alarm-clock
+Exec=/home/avinash/p_github/ubuntu_multi_timer_project/run.sh
+Terminal=false
+X-GNOME-Autostart-enabled=true
+StartupNotify=false
+Hidden=false

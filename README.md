@@ -5,11 +5,14 @@ A system tray application for Ubuntu that allows you to manage multiple named ti
 ## Features
 
 - **System Tray Integration**: Runs in Ubuntu's top bar with a clickable icon
+- **Pinned Timer Display**: See countdown directly in the top bar without clicking (v1.2)
 - **Multiple Timers**: Create and manage unlimited concurrent timers
 - **Real-Time Countdown**: View all active timers with live countdown display
 - **Desktop Notifications**: Get notified with sound when timers complete
 - **Simple Interface**: Quick and easy timer creation with hours, minutes, and seconds
 - **One-Click Management**: Delete timers instantly with a single click
+- **Desktop App Integration**: Available in Ubuntu application menu (v1.3)
+- **Auto-Start Support**: Launch automatically when you log in (v1.3)
 
 ## Prerequisites
 
