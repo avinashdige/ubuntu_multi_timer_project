@@ -41,12 +41,37 @@ class TimerAppDBusService(dbus.service.Object):
         Returns:
             True if successful, False otherwise
         """
+        return self.AddTimerWithType(title, hours, minutes, seconds, "timer")
+
+    @dbus.service.method(
+        'com.github.MultiTimerApp',
+        in_signature='siiis',
+        out_signature='b'
+    )
+    def AddTimerWithType(self, title, hours, minutes, seconds, timer_type):
+        """Add a timer or alarm via DBus.
+
+        Args:
+            title: Timer title
+            hours: Hours component
+            minutes: Minutes component
+            seconds: Seconds component
+            timer_type: "timer" for notification, "alarm" for persistent popup
+
+        Returns:
+            True if successful, False otherwise
+        """
         try:
             self.timer_app.timer_manager.add_timer(
-                title, hours, minutes, seconds
+                title, hours, minutes, seconds, timer_type=timer_type
             )
-            # Save to history
-            self.timer_app.timer_history.add_title(title)
+            # Save to history with duration
+            self.timer_app.timer_history.add_title(
+                title,
+                hours=hours,
+                minutes=minutes,
+                seconds=seconds
+            )
             return True
         except Exception as e:
             print(f"Error adding timer via DBus: {e}")

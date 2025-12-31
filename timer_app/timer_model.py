@@ -9,12 +9,13 @@ from gi.repository import GLib
 class Timer:
     """Represents a single timer with title and duration."""
 
-    def __init__(self, title, total_seconds):
+    def __init__(self, title, total_seconds, timer_type="timer"):
         """Initialize a new timer.
 
         Args:
             title: Display name for the timer
             total_seconds: Duration in seconds
+            timer_type: "timer" for notification, "alarm" for persistent popup
         """
         self.id = str(uuid.uuid4())
         self.title = title
@@ -23,6 +24,7 @@ class Timer:
         self.is_active = True
         self.created_at = datetime.now()
         self.thread = None
+        self.timer_type = timer_type
 
 
 class TimerManager:
@@ -44,7 +46,7 @@ class TimerManager:
         """
         self.notification_handler = handler
 
-    def add_timer(self, title, hours, minutes, seconds):
+    def add_timer(self, title, hours, minutes, seconds, timer_type="timer"):
         """Create and start a new timer.
 
         Args:
@@ -52,6 +54,7 @@ class TimerManager:
             hours: Hours (0-23)
             minutes: Minutes (0-59)
             seconds: Seconds (0-59)
+            timer_type: "timer" for notification, "alarm" for persistent popup
 
         Returns:
             Timer ID (UUID string)
@@ -70,7 +73,7 @@ class TimerManager:
         timer_id = None
 
         with self.lock:
-            timer = Timer(title, total_seconds)
+            timer = Timer(title, total_seconds, timer_type)
             thread = TimerThread(timer, self.on_timer_complete)
             timer.thread = thread
             self.timers[timer.id] = timer

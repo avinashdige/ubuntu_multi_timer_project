@@ -122,3 +122,7 @@ Version 1.2 requirements:
 
 Version 1.3 requirements:
 This app should be available as a Ubuntu desktop app too. Also, it should get launched automatically when the system boots up.
+
+Version 1.4 requirements:
+1. When we select one of the timer titles through autocomplete suggestions, the time that we had selected the last time for that timer should also get auto-populated, which would again be editable.
+2. We need to support two types of timers. First one and the default one would be the timer that just notifies with notify-send (whatever we have implemented currently). The other type of timer would be the system prompt (pop up) that we get, this window and its notification sound should only get closed when we click 'Stop', we can also provide a snooze button to this. When we add a custom timer, user should be provided a checkbox that will allow him to turn a timer (first type) into an alarm (second type).

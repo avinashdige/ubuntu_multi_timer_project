@@ -22,6 +22,9 @@ class TimerApp:
         self.timer_presets = TimerPresets()
         self.timer_manager.set_notification_handler(self.notification_handler)
 
+        # Set up alarm callback for snooze functionality
+        self.notification_handler.set_alarm_callback(self._create_snooze_timer)
+
         self.indicator = AppIndicator3.Indicator.new(
             "multi-timer-app",
             "alarm-clock",
@@ -62,7 +65,7 @@ class TimerApp:
 
     def show_add_timer_dialog(self):
         """Show the dialog to add a new timer."""
-        dialog = AddTimerDialog(None, self.timer_history.get_titles())
+        dialog = AddTimerDialog(None, timer_history=self.timer_history)
         response = dialog.run()
 
         if response == Gtk.ResponseType.OK:
@@ -73,10 +76,16 @@ class TimerApp:
                         timer_data["title"],
                         timer_data["hours"],
                         timer_data["minutes"],
-                        timer_data["seconds"]
+                        timer_data["seconds"],
+                        timer_type=timer_data.get("timer_type", "timer")
                     )
-                    # Save the title to history
-                    self.timer_history.add_title(timer_data["title"])
+                    # Save the title and duration to history
+                    self.timer_history.add_title(
+                        timer_data["title"],
+                        hours=timer_data["hours"],
+                        minutes=timer_data["minutes"],
+                        seconds=timer_data["seconds"]
+                    )
                 except Exception as e:
                     print(f"Error creating timer: {e}")
 
@@ -103,10 +112,38 @@ class TimerApp:
                 preset["minutes"],
                 preset["seconds"]
             )
-            # Save to history
-            self.timer_history.add_title(preset["title"])
+            # Save to history with duration
+            self.timer_history.add_title(
+                preset["title"],
+                hours=preset["hours"],
+                minutes=preset["minutes"],
+                seconds=preset["seconds"]
+            )
         except Exception as e:
             print(f"Error starting preset timer: {e}")
+
+    def _create_snooze_timer(self, title, snooze_seconds, timer_type):
+        """Create a snooze timer.
+
+        Args:
+            title: Original timer title
+            snooze_seconds: Duration in seconds
+            timer_type: Timer type (should be "alarm" for snooze)
+        """
+        hours = snooze_seconds // 3600
+        minutes = (snooze_seconds % 3600) // 60
+        seconds = snooze_seconds % 60
+
+        try:
+            self.timer_manager.add_timer(
+                title,
+                hours,
+                minutes,
+                seconds,
+                timer_type=timer_type
+            )
+        except Exception as e:
+            print(f"Error creating snooze timer: {e}")
 
     def update_indicator_label(self):
         """Update the AppIndicator label with pinned timer countdown.

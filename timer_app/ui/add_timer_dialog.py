@@ -7,12 +7,13 @@ from timer_app.utils import validate_timer_input
 class AddTimerDialog(Gtk.Dialog):
     """Dialog for creating a new timer."""
 
-    def __init__(self, parent, title_history=None):
+    def __init__(self, parent, title_history=None, timer_history=None):
         """Initialize the add timer dialog.
 
         Args:
             parent: Parent window (can be None)
             title_history: List of previous timer titles for autocomplete
+            timer_history: TimerHistory object for duration lookup (preferred)
         """
         super().__init__(
             title="Add New Timer",
@@ -24,6 +25,7 @@ class AddTimerDialog(Gtk.Dialog):
         self.set_default_size(350, 200)
 
         self.timer_data = None
+        self.timer_history = timer_history
 
         box = self.get_content_area()
         box.set_spacing(10)
@@ -36,8 +38,10 @@ class AddTimerDialog(Gtk.Dialog):
         self.title_entry.set_placeholder_text("Enter timer name")
         self.title_entry.set_max_length(50)
 
-        # Set up autocomplete
-        if title_history:
+        # Set up autocomplete (prefer timer_history object, fallback to title list)
+        if timer_history:
+            self._setup_autocomplete(timer_history.get_titles())
+        elif title_history:
             self._setup_autocomplete(title_history)
 
         box.pack_start(self.title_entry, False, False, 0)
@@ -80,6 +84,15 @@ class AddTimerDialog(Gtk.Dialog):
 
         box.pack_start(time_grid, False, False, 0)
 
+        # Alarm mode checkbox
+        alarm_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        alarm_box.set_margin_top(15)
+
+        self.alarm_checkbox = Gtk.CheckButton(label="Alarm mode (persistent popup with snooze)")
+        alarm_box.pack_start(self.alarm_checkbox, False, False, 0)
+
+        box.pack_start(alarm_box, False, False, 0)
+
         self.add_button("Cancel", Gtk.ResponseType.CANCEL)
         self.add_button("Start Timer", Gtk.ResponseType.OK)
 
@@ -109,8 +122,31 @@ class AddTimerDialog(Gtk.Dialog):
         completion.set_popup_completion(True)
         completion.set_minimum_key_length(1)
 
+        # Connect match-selected signal to auto-populate duration
+        completion.connect("match-selected", self._on_autocomplete_selected)
+
         # Attach to entry
         self.title_entry.set_completion(completion)
+
+    def _on_autocomplete_selected(self, completion, model, iter):
+        """Handle autocomplete selection to auto-populate duration.
+
+        Args:
+            completion: The Gtk.EntryCompletion
+            model: The list store model
+            iter: Iterator pointing to the selected row
+
+        Returns:
+            False to allow default handler to run
+        """
+        selected_title = model[iter][0]
+        if self.timer_history:
+            duration = self.timer_history.get_duration_for_title(selected_title)
+            if duration:
+                self.hours_spin.set_value(duration.get('hours', 0))
+                self.minutes_spin.set_value(duration.get('minutes', 0))
+                self.seconds_spin.set_value(duration.get('seconds', 0))
+        return False
 
     def on_response(self, dialog, response_id):
         """Handle dialog response.
@@ -135,7 +171,8 @@ class AddTimerDialog(Gtk.Dialog):
                     "title": title,
                     "hours": hours,
                     "minutes": minutes,
-                    "seconds": seconds
+                    "seconds": seconds,
+                    "timer_type": "alarm" if self.alarm_checkbox.get_active() else "timer"
                 }
 
     def show_error(self, message):

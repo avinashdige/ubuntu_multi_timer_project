@@ -102,13 +102,19 @@ def add_timer(args):
         # Parse duration
         hours, minutes, seconds = parse_duration(args.duration)
 
-        # Add timer
-        success = service.AddTimer(args.title, hours, minutes, seconds)
+        # Determine timer type
+        timer_type = "alarm" if args.alarm else "timer"
 
+        # Add timer
+        success = service.AddTimerWithType(
+            args.title, hours, minutes, seconds, timer_type
+        )
+
+        type_label = "Alarm" if args.alarm else "Timer"
         if success:
-            print(f"✓ Timer '{args.title}' started for {hours}h {minutes}m {seconds}s")
+            print(f"✓ {type_label} '{args.title}' started for {hours}h {minutes}m {seconds}s")
         else:
-            print("✗ Failed to add timer", file=sys.stderr)
+            print(f"✗ Failed to add {type_label.lower()}", file=sys.stderr)
             sys.exit(1)
 
     except Exception as e:
@@ -191,6 +197,9 @@ Examples:
   # Add a timer with seconds
   timer-cli add "Quick task" 2m30s
 
+  # Add an alarm (persistent popup with snooze)
+  timer-cli add "Wake up" 30m --alarm
+
   # List all active timers
   timer-cli list
 
@@ -207,6 +216,11 @@ Examples:
     add_parser.add_argument(
         'duration',
         help='Duration (e.g., 5m, 1h30m, 2h, 90s, 1h30m45s)'
+    )
+    add_parser.add_argument(
+        '--alarm', '-a',
+        action='store_true',
+        help='Create alarm (persistent popup with snooze) instead of timer'
     )
     add_parser.set_defaults(func=add_timer)
 
