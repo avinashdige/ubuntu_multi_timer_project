@@ -1,0 +1,26 @@
+True Parallel Multitasking:
+
+I want to create a time logging application for Ubuntu that can be accessed from system tray at the top and some options should get displayed. User should be able to log time as he starts on a task, he should be easily able to pause on that task when he starts on  another or when he takes a break. Basically, at the end of the day, he should be able to retrospect where did he spend his entire day? Before starting with an implementation, think thoroughly about its features, design, how it can be used, etc. Ask me questions if any. Historic reports should gets saved somewhere.
+
+This effectively turns your system tray menu into a Dashboard of Toggles. You can have "Frontend" and "Backend" both running simultaneously (perhaps a long build is running in the background while you code), and you must manually choose when to stop each one.
+The "True Multitasking" Design
+Here is how the UI and Logic adapt to this new requirement:
+1. The Tray Menu (The "Toggle" List)
+Instead of a single "Current Task," your menu becomes a list of active contexts.
+    Top Section (Active Tasks):
+        [ ■ ] Frontend Refactor (00:45) - RUNNING
+        [ ■ ] Database Migration (00:10) - RUNNING
+    Middle Section (Paused/Recent):
+        [ ▶ ] Reply to Emails (01:20)
+        [ ▶ ] Team Meeting
+    Action:
+        Clicking [ ■ ] Stops that specific timer.
+        Clicking [ ▶ ] Starts that specific timer (without stopping others).
+2. The Tray Icon
+Since multiple things are happening, the icon text (if enabled) will likely summarize the state, e.g., (2 Active) or just show a colored dot.
+3. The Visualization (Overlapping Gantt)
+This makes the "Timeline View" even more critical. In the "End of Day" report, you will see overlapping bars.
+    X-Axis: Time of day.
+    Y-Axis: Tasks.
+    Overlap: If you run Task A and B from 10:00 to 11:00, you will see two bars stacked vertically covering that hour.
+    Math: Your "Total Task Hours" might be 10 hours, even if you only sat at the computer for 8 hours.

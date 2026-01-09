@@ -17,6 +17,25 @@ def format_time(seconds):
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
 
+def format_tracker_duration(seconds):
+    """Convert seconds to H:MM:SS or MM:SS format.
+
+    Args:
+        seconds: Integer number of seconds
+
+    Returns:
+        String like "1:05:20" or "05:20"
+    """
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+
+    if hours > 0:
+        return f"{hours}:{minutes:02d}:{secs:02d}"
+    else:
+        return f"{minutes:02d}:{secs:02d}"
+
+
 def parse_time(hours, minutes, seconds):
     """Convert hours, minutes, seconds to total seconds.
 

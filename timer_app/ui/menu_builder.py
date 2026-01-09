@@ -1,7 +1,8 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-
+from datetime import datetime
+from timer_app.utils import format_tracker_duration
 
 class MenuBuilder:
     """Builds the system tray menu for the timer application."""
@@ -20,7 +21,69 @@ class MenuBuilder:
         Returns:
             Gtk.Menu object
         """
+        # Clear previous active items tracking
+        self.app.active_session_items = []
+        
         menu = Gtk.Menu()
+
+        # --- Time Tracker Section ---
+        
+        # Header
+        tracker_header = Gtk.MenuItem(label="Time Tracker")
+        tracker_header.set_sensitive(False)
+        menu.append(tracker_header)
+        
+        # Active Sessions
+        active_sessions = self.app.tracker_manager.get_active_sessions()
+        now = datetime.now()
+        
+        if active_sessions:
+            for session in active_sessions:
+                current_duration = (now - session['start_time']).total_seconds()
+                total_duration = current_duration + session.get('accumulated_seconds', 0)
+                time_str = format_tracker_duration(total_duration)
+                
+                label = f" [ ■ ] {session['task_name']} ({time_str})"
+                item = Gtk.MenuItem(label=label)
+                item.connect("activate", lambda _, s=session: self.app.tracker_manager.stop_task(s['id']))
+                menu.append(item)
+                
+                # Track this item for live updates
+                self.app.active_session_items.append((item, session))
+        else:
+            empty_item = Gtk.MenuItem(label="  (No active tasks)")
+            empty_item.set_sensitive(False)
+            menu.append(empty_item)
+
+        # Separator
+        menu.append(Gtk.SeparatorMenuItem())
+        
+        # Recent/Paused Tasks
+        recent_tasks = self.app.tracker_manager.get_recent_tasks()
+        if recent_tasks:
+            for task in recent_tasks:
+                label = f" [ ▶ ] {task['name']}"
+                item = Gtk.MenuItem(label=label)
+                item.connect("activate", lambda _, t=task: self.app.tracker_manager.start_task(t['name']))
+                menu.append(item)
+            
+            menu.append(Gtk.SeparatorMenuItem())
+
+        # Tracker Actions
+        start_item = Gtk.MenuItem(label="Start New Activity...")
+        start_item.connect("activate", lambda _: self.app.show_start_activity_dialog())
+        menu.append(start_item)
+        
+        dash_item = Gtk.MenuItem(label="Daily Dashboard...")
+        dash_item.connect("activate", lambda _: self.app.show_dashboard())
+        menu.append(dash_item)
+
+        # --- Countdown Timer Section ---
+        menu.append(Gtk.SeparatorMenuItem())
+        
+        timer_header = Gtk.MenuItem(label="Countdown Timers")
+        timer_header.set_sensitive(False)
+        menu.append(timer_header)
 
         # Add Timer with submenu
         add_item = Gtk.MenuItem(label="Add Timer")
@@ -32,8 +95,8 @@ class MenuBuilder:
         view_item.connect("activate", lambda _: self.app.show_view_timers_dialog())
         menu.append(view_item)
 
-        separator = Gtk.SeparatorMenuItem()
-        menu.append(separator)
+        # --- System ---
+        menu.append(Gtk.SeparatorMenuItem())
 
         quit_item = Gtk.MenuItem(label="Quit")
         quit_item.connect("activate", lambda _: self.app.quit())
